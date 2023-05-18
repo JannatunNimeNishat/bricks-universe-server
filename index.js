@@ -48,13 +48,24 @@ async function run() {
 
   //Toys CRUD
 
+  
+  //read a specific category toy
+  app.get('/toys', async (req,res)=>{
+    console.log(req.query);
+    let query = {}
+    if(req.query.sub_category){
+      query = {sub_category:req.query.sub_category}
+    }
+    const result = await toysCollection.find(query).toArray()
+    res.send(result)
+    // console.log(query);
+  })
+  
   //READ get all toys
   app.get('/toys', async(req,res)=>{
     const result = await toysCollection.find().toArray()
     res.send(result)
   })
-
-    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
