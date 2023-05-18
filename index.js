@@ -80,20 +80,38 @@ async function run() {
     })
 
     //get toys added by a specific seller
-    app.get('/userAddedToys', async(req,res)=>{
-      
-      let query={};
+    app.get('/userAddedToys', async (req, res) => {
+
+      let query = {};
       console.log(req.query.seller_email);
-      if(req.query.seller_email){
-        query = {seller_email : req.query.seller_email}
+      if (req.query.seller_email) {
+        query = { seller_email: req.query.seller_email }
       }
       const result = await toysCollection.find(query).toArray()
-     
+
       res.send(result)
 
     })
 
-
+    //update a specific toy
+    app.put('/updateToy/:id', async (req, res) => {
+      const id = req.params.id;
+      const toy = req.body;
+      // console.log(id,toy);
+      const filter = { _id: new ObjectId(id) }
+      //const options = {upsert:true}
+      const updateToy = {
+        $set: {
+          price: toy.price,
+          quantity: toy.quantity,
+          description: toy.description
+        }
+      }
+      console.log(filter);
+      const result = await toysCollection.updateOne(filter, updateToy);
+      console.log(result);
+      res.send(result);
+    })
 
     //CREATE a toy
 
@@ -103,7 +121,7 @@ async function run() {
       res.send(result)
     })
 
-    
+
 
 
 
