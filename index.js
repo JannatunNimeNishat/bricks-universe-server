@@ -87,8 +87,8 @@ async function run() {
       if (req.query.seller_email) {
         query = { seller_email: req.query.seller_email }
       }
-      const result = await toysCollection.find(query).toArray()
-
+      const result = await toysCollection.find(query).sort({price: 1}).toArray()
+      console.log('reached');
       res.send(result)
 
     })
@@ -97,33 +97,32 @@ async function run() {
     app.put('/updateToy/:id', async (req, res) => {
       const id = req.params.id;
       const toy = req.body;
-     
+
       const filter = { _id: new ObjectId(id) }
-      
+
       const updateToy = {
         $set: {
           price: toy.price,
           quantity: toy.quantity,
-          description: toy.description
+          description: toy.description,
+          sub_category: toy.sub_category
         }
       }
-      
+
       const result = await toysCollection.updateOne(filter, updateToy);
-     
+
       res.send(result);
     })
 
 
     //delete a toy
-    app.delete('/toy/:id', async(req,res)=>{
+    app.delete('/toy/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await toysCollection.deleteOne(query)
       console.log(result);
       res.send(result)
     })
-
-
 
 
 
@@ -135,6 +134,55 @@ async function run() {
       const result = await toysCollection.insertOne(toy)
       res.send(result)
     })
+
+
+
+    //sort my toys based on price(ascending or descending)
+    //
+    app.post('/toyPriceWise', async (req, res) => {
+
+      let query;
+
+      if(req.query.seller_email){
+        query = {seller_email: req.query.seller_email}
+      }
+      const body = req.body
+      const flag = body.tag
+      
+      let result;
+      if(flag ==1){
+        result = await toysCollection.find(query).sort({price: 1}).toArray()
+      }
+      else{
+        result = await toysCollection.find(query).sort({price: -1}).toArray()
+      }
+
+
+      res.send(result);
+
+
+
+      // console.log('reached');
+      /* const choice = parseInt(req.params.choice);
+      let result;
+       if(choice === 1){
+         console.log(choice);
+         result = await toysCollection.find({}).sort({price:1}).toArray()
+       }
+       else{
+         console.log(choice);
+         result = await toysCollection.find({}).sort({price:-1}).toArray()
+       } */
+
+
+
+      // res.send(result);
+    })
+
+
+
+
+
 
 
 
