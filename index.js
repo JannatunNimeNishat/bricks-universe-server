@@ -157,33 +157,33 @@ async function run() {
         result = await toysCollection.find(query).sort({price: -1}).toArray()
       }
 
-
       res.send(result);
 
-
-
-      // console.log('reached');
-      /* const choice = parseInt(req.params.choice);
-      let result;
-       if(choice === 1){
-         console.log(choice);
-         result = await toysCollection.find({}).sort({price:1}).toArray()
-       }
-       else{
-         console.log(choice);
-         result = await toysCollection.find({}).sort({price:-1}).toArray()
-       } */
-
-
-
-      // res.send(result);
     })
 
 
+    //search in by toy_name
 
+    //creating index
+    const indexKey = {toyName:1}; //actual field name in which we want to index
 
+    const indexOptions = {name: "toy_name_index"} // after index the field name will be toy_name_index
 
+    const result = await toysCollection.createIndex(indexKey,indexOptions);
 
+    
+    //search api
+    app.get('/searchAllToys/:search_toy_name', async (req,res)=>{
+      const search_toy_name = req.params.search_toy_name;
+     
+      const result = await toysCollection.find(
+        {toyName: {$regex: search_toy_name, $options:'i'}}
+
+        ).toArray()
+       
+      res.send(result);
+
+    })
 
 
 
