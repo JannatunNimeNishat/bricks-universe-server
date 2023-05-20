@@ -29,6 +29,26 @@ const client = new MongoClient(uri, {
   }
 });
 
+//validate the user who request for data
+const validateUserJWT = (req,res,next)=>{
+  
+  const authorization = req.headers.authorization;
+  if(!authorization){
+    return res.status(401).send({error:true, message:'Unauthorized access'})
+  }
+  const token = authorization.split(' ')[1];
+  // console.log(token);
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err, decoded)=>{
+    if(err){
+      return res.status(403).send({error:true, message:'Unauthorized access'})
+    }
+    req.decoded = decoded;
+    next();
+  })
+}
+
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -99,8 +119,13 @@ async function run() {
   
 
     //get toys added by a specific seller
-    app.get('/userAddedToys', async (req, res) => {
-
+    app.get('/userAddedToys', validateUserJWT ,async (req, res) => {
+      // console.log(req.headers.authorization);
+      const decoded = req.decoded;
+      // console.log(decoded);
+      if(decoded.email !== req.query.seller_email){
+        return res.status(403).send({error:true, message:'Unauthorized access'})
+      }
       let query = {};
     
       if (req.query.seller_email) {
@@ -113,7 +138,9 @@ async function run() {
     })
 
     //update a specific toy
-    app.put('/updateToy/:id', async (req, res) => {
+    app.put('/updateToy/:id',validateUserJWT ,async (req, res) => {
+     
+
       const id = req.params.id;
       const toy = req.body;
 
