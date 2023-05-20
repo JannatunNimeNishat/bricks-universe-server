@@ -12,9 +12,12 @@ const port = process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
 
+//jwt
+const jwt = require('jsonwebtoken');
+
+
+
 //mongodb
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.oth2isl.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -37,6 +40,21 @@ async function run() {
 
 
 
+    //jwt
+    app.post('/jwt', (req,res)=>{
+      console.log('reached');
+      const user = req.body;
+     
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '3h'})
+     
+      res.send({token});
+    })
+
+
+
+
+
+
     //categories CRUD
     //READ all categories
     app.get('/categories', async (req, res) => {
@@ -44,20 +62,29 @@ async function run() {
       res.send(result)
     })
 
-
-
-    //Toys CRUD
+  
+    
+  //READ get all toys
+  app.get('/allToys', async (req, res) => {
+     
+    const query = {}
+    const cursor = toysCollection.find(query).limit(20)
+    const result = await cursor.toArray()
+    
+    res.send(result)
+  })
+  
 
 
     //read a specific category toy
     app.get('/toys', async (req, res) => {
-      // console.log(req.query);
+     
       let query = {}
       if (req.query.sub_category) {
         query = { sub_category: req.query.sub_category }
       }
       const result = await toysCollection.find(query).toArray()
-      // console.log(result);
+      
       res.send(result)
     })
 
@@ -69,26 +96,18 @@ async function run() {
       res.send(result)
     })
 
-    //READ get all toys
-    app.get('/allToys', async (req, res) => {
-      console.log('reached');
-      const query = {}
-      const cursor = toysCollection.find(query).limit(20)
-      const result = await cursor.toArray()
-      console.log(result);
-      res.send(result)
-    })
+  
 
     //get toys added by a specific seller
     app.get('/userAddedToys', async (req, res) => {
 
       let query = {};
-      console.log(req.query.seller_email);
+    
       if (req.query.seller_email) {
         query = { seller_email: req.query.seller_email }
       }
       const result = await toysCollection.find(query).sort({price: 1}).toArray()
-      console.log('reached');
+     
       res.send(result)
 
     })
@@ -120,7 +139,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await toysCollection.deleteOne(query)
-      console.log(result);
+      
       res.send(result)
     })
 
@@ -171,15 +190,20 @@ async function run() {
 
     const result = await toysCollection.createIndex(indexKey,indexOptions);
 
-    
+
     //search api
     app.get('/searchAllToys/:search_toy_name', async (req,res)=>{
       const search_toy_name = req.params.search_toy_name;
-     
-      const result = await toysCollection.find(
+      let query;
+      if(search_toy_name){
+        query = {toyName: {$regex: search_toy_name, $options:'i'}}
+      }
+      const result = await toysCollection.find(query).toArray();
+      
+     /*  const result = await toysCollection.find(
         {toyName: {$regex: search_toy_name, $options:'i'}}
 
-        ).toArray()
+        ).toArray() */
        
       res.send(result);
 
