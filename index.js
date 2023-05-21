@@ -52,7 +52,7 @@ const validateUserJWT = (req,res,next)=>{
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
 
     const toysCollection = client.db('bricksUniverseDB').collection('toys')
@@ -126,6 +126,7 @@ async function run() {
       if(decoded.email !== req.query.seller_email){
         return res.status(403).send({error:true, message:'Unauthorized access'})
       }
+
       let query = {};
     
       if (req.query.seller_email) {
@@ -138,7 +139,7 @@ async function run() {
     })
 
     //update a specific toy
-    app.put('/updateToy/:id',validateUserJWT ,async (req, res) => {
+    app.put('/updateToy/:id' ,async (req, res) => {
      
 
       const id = req.params.id;
@@ -150,8 +151,7 @@ async function run() {
         $set: {
           price: toy.price,
           quantity: toy.quantity,
-          description: toy.description,
-          sub_category: toy.sub_category
+          description: toy.description
         }
       }
 
@@ -220,17 +220,14 @@ async function run() {
 
     //search api
     app.get('/searchAllToys/:search_toy_name', async (req,res)=>{
+      
       const search_toy_name = req.params.search_toy_name;
       let query;
       if(search_toy_name){
         query = {toyName: {$regex: search_toy_name, $options:'i'}}
       }
       const result = await toysCollection.find(query).toArray();
-      
-     /*  const result = await toysCollection.find(
-        {toyName: {$regex: search_toy_name, $options:'i'}}
-
-        ).toArray() */
+  
        
       res.send(result);
 
